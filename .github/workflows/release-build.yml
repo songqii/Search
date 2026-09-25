@@ -1,0 +1,44 @@
+# Puts the release app through the same steps as ./build.sh release dmg —
+# the SwiftPM binary, the .app around it, the language folders, the disk
+# image — and publishes build/Search.dmg and build/Search.zip on a GitHub
+# Release when a tag is pushed.
+#
+# GitHub's runners have no Developer ID certificate and no notary profile,
+# so what comes out here is ad-hoc signed: it opens on the Mac that would
+# build it, which is fine for trying a release, not for handing to anyone
+# else. The signed, notarised release is still ./build.sh release ship on
+# a Mac that holds the certificate — see the header of build.sh.
+
+name: Release build
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  package:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        run: ./build.sh release dmg
+
+      - name: Show what was built
+        run: |
+          plutil -p build/Search.app/Contents/Info.plist | grep -E 'ShortVersion|BundleVersion|Localizations' -A 4
+          ls -l build/Search.dmg build/Search.zip
+
+      - name: Create the release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/Search.dmg
+            build/Search.zip
+          body: |
+            Built by Release build from ${{ github.ref_name }}.
+            Ad-hoc signed on GitHub's runner — for trying, not for Gatekeeper-verified install.
+          token: ${{ secrets.GITHUB_TOKEN }}
