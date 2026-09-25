@@ -19,7 +19,9 @@ on:
 
 jobs:
   package:
-    runs-on: macos-14
+    # The package wants Swift tools 6.0; macos-14 still ships the 5.10
+    # toolchain, macos-15 has Xcode 16.
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
 
