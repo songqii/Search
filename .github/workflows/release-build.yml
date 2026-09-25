@@ -21,6 +21,10 @@ jobs:
   package:
     # The package wants Swift tools 6.0; macos-14 still ships the 5.10
     # toolchain, macos-15 has Xcode 16.
+    # Without write for contents the default token cannot create a Release,
+    # and the build step ends in "Resource not accessible by integration".
+    permissions:
+      contents: write
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
